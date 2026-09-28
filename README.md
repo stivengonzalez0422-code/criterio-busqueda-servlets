@@ -7,6 +7,7 @@ Aplicación web pequeña para administrar los registros de `criterio_busqueda` d
 - Consultar el listado y el detalle de criterios.
 - Crear, actualizar y eliminar criterios.
 - Usar solicitudes `GET` para consultar y mostrar formularios; las operaciones de escritura usan `POST`.
+- La eliminación es permanente, se confirma en la interfaz y solo se procesa mediante `POST`.
 - Validar los campos requeridos, fechas, precio, longitudes y existencia del usuario.
 - Ejecutar consultas parametrizadas con `PreparedStatement`.
 
