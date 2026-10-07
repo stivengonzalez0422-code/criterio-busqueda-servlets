@@ -50,6 +50,8 @@ Detalles de servidores, variables y problemas frecuentes: [docs/configuracion.md
 | [docs/configuracion.md](docs/configuracion.md) | Configuración de Tomcat, MySQL y ambientes |
 | [docs/pruebas.md](docs/pruebas.md) | Informe de pruebas y defectos corregidos |
 | [docs/despliegue.md](docs/despliegue.md) | URLs y ejecutables |
+| [docs/Informe_GA8-220501096-AA1-EV01.docx](docs/Informe_GA8-220501096-AA1-EV01.docx) | Informe técnico con diagramas y capturas |
+| [docs/capturas](docs/capturas) y [docs/diagramas](docs/diagramas) | Imágenes de evidencia y diagramas |
 
 ## Estructura
 

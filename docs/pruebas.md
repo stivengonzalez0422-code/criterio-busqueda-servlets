@@ -64,8 +64,9 @@ Se recorrió en el navegador integrado de VS Code: registro, inicio de sesión, 
 | 1 | `No suitable driver found for jdbc:mysql` al ejecutar en Tomcat: el CRUD entregado antes no conectaba. | Prueba del WAR en Tomcat | `Database` carga el driver explícitamente | Todo el script HTTP (necesita conexión real) |
 | 2 | Menú y pie de página con caracteres corruptos (`Ã³`): los fragmentos `.jspf` no se leían como UTF-8. | Revisión visual en el navegador | `page-encoding` UTF-8 en `web.xml` | Comprobación de caracteres corruptos en el script HTTP |
 | 3 | Las horas de los vuelos aparecían 5 horas antes (07:15 se mostraba como 02:15) por la conversión de zona horaria del driver. | Revisión visual de las ofertas | Leer `DATETIME` con `getObject(..., LocalDateTime.class)` | `lasHorasDeLosVuelosSeLeenTalComoEstanGuardadas` (se comprobó que falla con el código anterior) |
+| 4 | El pie de página quedaba pegado al borde izquierdo, fuera del ancho del contenido. | Capturas de pantalla para el informe | Estilo `.page-footer` alineado con el contenido | Revisión visual |
 
-Los defectos 2 y 3 no los detectaban las pruebas anteriores: por eso se añadieron las comprobaciones indicadas.
+Los defectos 2, 3 y 4 no los detectaban las pruebas anteriores: por eso se añadieron las comprobaciones indicadas.
 
 ## 5. Alcance y límites
 
