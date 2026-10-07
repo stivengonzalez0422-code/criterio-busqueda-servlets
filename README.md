@@ -1,80 +1,81 @@
-# Criterios de búsqueda de viajes
+# Agenda con tu asistente virtual — módulos integrados
 
-Aplicación web pequeña para administrar los registros de `criterio_busqueda` de la base `agenda_asistente_viajes`. Está construida con Java 17, Maven, Jakarta Servlets, JSP/JSTL y JDBC para MySQL. No incluye registro ni creación de usuarios: el `id_usuario` debe existir previamente en la tabla `usuario`.
+Aplicación web en **Java 17, Servlets, JSP/JSTL, HTML5, CSS3, JavaScript, JDBC y MySQL**, construida con **Maven** y desplegada en **Apache Tomcat 10.1**. Proyecto SENA, evidencia GA8-220501096-AA1-EV01: *desarrollar software a partir de la integración de sus módulos componentes*.
 
-## Funciones
+La base de datos es `agenda_asistente_viajes`. La tabla principal del módulo original es `criterio_busqueda` (relación Usuario 1:N Criterio de búsqueda).
 
-- Consultar el listado y el detalle de criterios.
-- Crear, actualizar y eliminar criterios.
-- Usar solicitudes `GET` para consultar y mostrar formularios; las operaciones de escritura usan `POST`.
-- La eliminación es permanente, se confirma en la interfaz y solo se procesa mediante `POST`.
-- Validar los campos requeridos, fechas, precio, longitudes y existencia del usuario.
-- Ejecutar consultas parametrizadas con `PreparedStatement`.
+## Módulos
 
-## Requisitos
-
-- JDK 17 o superior.
-- Maven 3.8 o superior.
-- Apache Tomcat 10.1 (Jakarta Servlet 6.0).
-- MySQL 8 con la base de datos y las tablas `usuario` y `criterio_busqueda`.
-
-El SQL existente del proyecto define el esquema. Si la tabla aún no está creada, ejecute `sql\criterio_busqueda.sql` después de confirmar que existe la tabla `usuario`. No ejecute un script que elimine o reinicie datos existentes.
-
-## Configuración local
-
-Configure estas variables de entorno antes de iniciar Tomcat:
-
-| Variable | Valor predeterminado | Descripción |
+| Módulo | Qué hace | Tablas |
 | --- | --- | --- |
-| `DB_URL` | `jdbc:mysql://localhost:3306/agenda_asistente_viajes?serverTimezone=UTC` | URL JDBC |
-| `DB_USER` | `root` | Usuario de MySQL local |
-| `DB_PASSWORD` | vacío | Contraseña de MySQL |
+| **Usuarios** | Registro, inicio y cierre de sesión con contraseña protegida | `usuario` |
+| **Criterios de búsqueda** | Registrar, consultar, ver, actualizar y eliminar criterios propios | `criterio_busqueda` |
+| **Ofertas** | Muestra vuelos, hospedajes y restaurantes que cumplen un criterio | `vuelo`, `hospedaje`, `restaurante` |
 
-En Windows PowerShell, por ejemplo:
+Integración: el usuario autenticado es dueño de sus criterios (nadie ve los de otros) y cada criterio se convierte en una búsqueda de ofertas. Los detalles están en [docs/arquitectura.md](docs/arquitectura.md).
+
+Los formularios usan `GET` para mostrar y consultar, y `POST` (con token CSRF) para crear, actualizar, eliminar, registrar e iniciar o cerrar sesión. Nada se elimina por `GET`.
+
+## Inicio rápido
+
+Requisitos: JDK 17, Maven 3.8+, Tomcat 10.1 y MySQL 8.
 
 ```powershell
-$env:DB_URL = "jdbc:mysql://localhost:3306/agenda_asistente_viajes?serverTimezone=UTC"
+# 1. Base de datos (seguro de repetir; no borra datos)
+mysql -u root --default-character-set=utf8mb4 -e "source sql/esquema.sql"
+mysql -u root --default-character-set=utf8mb4 -e "source sql/datos_demo.sql"   # opcional, una sola vez
+
+# 2. Credenciales de MySQL (solo si no usa root sin contraseña)
 $env:DB_USER = "root"
 $env:DB_PASSWORD = "su_clave_local"
+
+# 3. Construir y probar
+mvn clean package
+
+# 4. Desplegar: copiar target\criterio-busqueda-servlets.war a webapps de Tomcat 10.1 y arrancarlo
 ```
 
-No guarde contraseñas reales en Git. El conector JDBC se incluye en el WAR mediante Maven.
+Abrir `http://localhost:8080/criterio-busqueda-servlets/`, crear una cuenta en **Crear cuenta** e iniciar sesión. Los usuarios no se cargan por script: se registran desde la aplicación.
 
-## Construcción y ejecución
+Detalles de servidores, variables y problemas frecuentes: [docs/configuracion.md](docs/configuracion.md).
 
-Desde la raíz del proyecto:
+## Documentación
 
-```powershell
-mvn clean test package
-```
-
-Copie `target\criterio-busqueda-servlets.war` a la carpeta `webapps` de Tomcat 10.1, inicie Tomcat y abra:
-
-```text
-http://localhost:8080/criterio-busqueda-servlets/criterios
-```
-
-Si Tomcat usa otro puerto o contexto, ajuste la URL. La cuenta MySQL configurada debe tener permisos de lectura y escritura sobre `agenda_asistente_viajes`.
-
-## Prueba del flujo
-
-1. Verifique que MySQL esté iniciado y que haya al menos un usuario registrado por el proceso correspondiente.
-2. Abra el listado de criterios.
-3. Cree un criterio con un `id_usuario` existente, destino, fechas válidas y precio no negativo.
-4. Consulte, edite y elimine un registro desde las acciones del listado.
-
-Si `usuario` está vacía, el formulario no creará usuarios ficticios: indicará que el identificador ingresado no existe.
+| Documento | Contenido |
+| --- | --- |
+| [docs/arquitectura.md](docs/arquitectura.md) | Capas, librerías, paquetes, componentes, clases y patrones |
+| [docs/modulos.md](docs/modulos.md) | Entradas, salidas y rutas de cada módulo y componente |
+| [docs/navegacion.md](docs/navegacion.md) | Mapa de navegación |
+| [docs/seguridad.md](docs/seguridad.md) | Mecanismos de seguridad y límites conocidos |
+| [docs/configuracion.md](docs/configuracion.md) | Configuración de Tomcat, MySQL y ambientes |
+| [docs/pruebas.md](docs/pruebas.md) | Informe de pruebas y defectos corregidos |
+| [docs/despliegue.md](docs/despliegue.md) | URLs y ejecutables |
 
 ## Estructura
 
 ```text
-src/main/java/co/edu/sena/criterios/
-  dao/                 Acceso JDBC al criterio y validación de usuario
-  model/               Modelo de dominio
-  util/                Conexión JDBC
-  validation/          Reglas de validación de formularios
-  web/                 Servlet de rutas GET y POST
+src/main/java/co/edu/sena/
+  usuarios/{model,dao,service,validation,web}
+  criterios/{model,dao,validation,web}
+  ofertas/{model,dao,web}
+  seguridad/       Filtros, sesión y hash de contraseñas
+  inicio/          Panel principal
+  comun/           Conexión JDBC y utilidades
 src/main/webapp/
-  WEB-INF/views/       Vistas JSP
-  assets/              Estilos de la aplicación
+  WEB-INF/views/   JSP por módulo y plantilla común (layout)
+  WEB-INF/web.xml  Sesión, codificación y páginas de error
+  assets/          CSS y JavaScript
+src/test/java/     Pruebas JUnit por módulo
+sql/               Esquema y datos de demostración
+scripts/           Prueba de integración HTTP
+docs/              Documentación
 ```
+
+## Pruebas
+
+- `mvn clean package` ejecuta 42 pruebas JUnit (28 unitarias y 14 de integración con MySQL). Las de integración usan la base `agenda_asistente_viajes_test` y se omiten si MySQL no está disponible.
+- `scripts/prueba-integracion.ps1` recorre la aplicación desplegada (22 comprobaciones). Ver [docs/pruebas.md](docs/pruebas.md).
+
+## Repositorio
+
+<https://github.com/stivengonzalez0422-code/criterio-busqueda-servlets>
