@@ -1,5 +1,6 @@
 package co.edu.sena.criterios.validation;
 
+import co.edu.sena.comun.Textos;
 import co.edu.sena.criterios.model.CriterioBusqueda;
 
 import java.math.BigDecimal;
@@ -8,13 +9,16 @@ import java.time.format.DateTimeParseException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Valida el formulario de un criterio y llena el modelo con los valores normalizados.
+ * El usuario dueño no viene del formulario: lo asigna el servlet desde la sesión.
+ */
 public class CriterioValidator {
     private static final BigDecimal MAX_PRICE = new BigDecimal("9999999999.99");
     private static final int MAX_PREFERENCES_LENGTH = 16_383;
 
     public Map<String, String> validate(CriterioBusqueda criterio, Map<String, String> values) {
         Map<String, String> errors = new LinkedHashMap<>();
-        parseUserId(values.get("id_usuario"), criterio, errors);
         parseDestination(values.get("destino"), criterio, errors);
         LocalDate start = parseDate(values.get("fecha_inicio"), "fecha_inicio",
                 "La fecha de inicio no es válida.", errors);
@@ -26,9 +30,8 @@ public class CriterioValidator {
             errors.put("fecha_fin", "La fecha de fin debe ser igual o posterior a la fecha de inicio.");
         }
         parsePrice(values.get("precio_maximo"), criterio, errors);
-        parseOptionalText(values.get("horario"), "horario", 100,
-                "El horario no puede superar los 100 caracteres.", criterio, errors);
-        String preferencias = trimToNull(values.get("preferencias"));
+        parseSchedule(values.get("horario"), criterio, errors);
+        String preferencias = Textos.recortarONulo(values.get("preferencias"));
         if (preferencias != null && preferencias.length() > MAX_PREFERENCES_LENGTH) {
             errors.put("preferencias", "Las preferencias superan el tamaño permitido.");
         }
@@ -37,20 +40,8 @@ public class CriterioValidator {
         return errors;
     }
 
-    private void parseUserId(String value, CriterioBusqueda criterio, Map<String, String> errors) {
-        try {
-            int id = Integer.parseInt(value == null ? "" : value.trim());
-            if (id < 1) {
-                throw new NumberFormatException();
-            }
-            criterio.setIdUsuario(id);
-        } catch (NumberFormatException exception) {
-            errors.put("id_usuario", "Ingrese un identificador de usuario válido.");
-        }
-    }
-
     private void parseDestination(String value, CriterioBusqueda criterio, Map<String, String> errors) {
-        String destination = trimToNull(value);
+        String destination = Textos.recortarONulo(value);
         if (destination == null) {
             errors.put("destino", "El destino es obligatorio.");
         } else if (destination.length() > 100) {
@@ -74,36 +65,22 @@ public class CriterioValidator {
     private void parsePrice(String value, CriterioBusqueda criterio, Map<String, String> errors) {
         try {
             BigDecimal price = new BigDecimal(value == null ? "" : value.trim());
-            if (price.signum() < 0 || price.compareTo(MAX_PRICE) > 0 || price.scale() > 2) {
-                errors.put("precio_maximo", "El precio debe estar entre 0 y 9.999.999.999,99 y tener máximo dos decimales.");
+            if (price.signum() < 0 || price.compareTo(MAX_PRICE) > 0 || price.stripTrailingZeros().scale() > 2) {
+                errors.put("precio_maximo",
+                        "El precio debe estar entre 0 y 9.999.999.999,99 y tener máximo dos decimales.");
             } else {
-                criterio.setPrecioMaximo(price);
+                criterio.setPrecioMaximo(price.setScale(2));
             }
         } catch (NumberFormatException exception) {
             errors.put("precio_maximo", "Ingrese un precio numérico válido.");
         }
     }
 
-    private void parseOptionalText(
-            String value,
-            String field,
-            int maxLength,
-            String error,
-            CriterioBusqueda criterio,
-            Map<String, String> errors) {
-        String text = trimToNull(value);
-        if (text != null && text.length() > maxLength) {
-            errors.put(field, error);
+    private void parseSchedule(String value, CriterioBusqueda criterio, Map<String, String> errors) {
+        String schedule = Textos.recortarONulo(value);
+        if (schedule != null && schedule.length() > 100) {
+            errors.put("horario", "El horario no puede superar los 100 caracteres.");
         }
-        if ("horario".equals(field)) {
-            criterio.setHorario(text);
-        }
-    }
-
-    private String trimToNull(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return value.trim();
+        criterio.setHorario(schedule);
     }
 }

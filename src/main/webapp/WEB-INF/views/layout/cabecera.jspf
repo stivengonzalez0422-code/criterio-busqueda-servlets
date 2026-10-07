@@ -1,0 +1,40 @@
+<%-- Cabecera común. La página que la incluye debe declarar antes las taglibs c y fmt
+     y definir tituloPagina (y opcionalmente claseContenedor). --%>
+<fmt:setLocale value="es_CO"/>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><c:out value="${tituloPagina}"/> | Agenda con tu asistente virtual</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css">
+    <script src="${pageContext.request.contextPath}/assets/js/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <a class="brand" href="${pageContext.request.contextPath}/inicio">Agenda de viajes</a>
+        <c:choose>
+            <c:when test="${not empty sessionScope.usuarioSesion}">
+                <nav class="topnav" aria-label="Principal">
+                    <a href="${pageContext.request.contextPath}/inicio">Inicio</a>
+                    <a href="${pageContext.request.contextPath}/criterios">Criterios de búsqueda</a>
+                </nav>
+                <div class="user-box">
+                    <span class="user-name"><c:out value="${sessionScope.usuarioSesion.nombreCompleto}"/></span>
+                    <form action="${pageContext.request.contextPath}/logout" method="post">
+                        <input type="hidden" name="_csrf" value="<c:out value='${sessionScope.csrfToken}'/>">
+                        <button class="link-button" type="submit">Cerrar sesión</button>
+                    </form>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <nav class="topnav" aria-label="Acceso">
+                    <a href="${pageContext.request.contextPath}/login">Iniciar sesión</a>
+                    <a href="${pageContext.request.contextPath}/registro">Crear cuenta</a>
+                </nav>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</header>
+<main class="container ${claseContenedor}">

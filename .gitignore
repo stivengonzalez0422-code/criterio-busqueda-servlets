@@ -7,3 +7,5 @@ target/
 *.iml
 .env
 *.log
+setenv.bat
+setenv.sh
